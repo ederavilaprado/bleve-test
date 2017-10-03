@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/bleve"
-	_ "github.com/blevesearch/bleve/analysis/analyzer/keyword"
+	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
 	// _ "github.com/blevesearch/bleve/analysis/lang/pt"
 )
 
@@ -52,7 +52,8 @@ func main() {
 
 	// Facet
 	search.AddFacet("Types", bleve.NewFacetRequest("Typex", 5))
-	search.AddFacet("Name", bleve.NewFacetRequest("name", 5))
+	search.AddFacet("Tags", bleve.NewFacetRequest("Tags", 5))
+	// search.AddFacet("Name", bleve.NewFacetRequest("name", 5))
 
 	searchResults, err := index.Search(search)
 	if err != nil {
@@ -77,9 +78,9 @@ func createIndex() (bleve.Index, error) {
 
 	productMapping := bleve.NewDocumentMapping()
 
-	nameFieldMapping := bleve.NewTextFieldMapping()
-	nameFieldMapping.Analyzer = "keyword"
-	productMapping.AddFieldMappingsAt("name", nameFieldMapping)
+	tagsFieldMapping := bleve.NewTextFieldMapping()
+	tagsFieldMapping.Analyzer = keyword.Name
+	productMapping.AddFieldMappingsAt("Tags", tagsFieldMapping)
 
 	// Add product mapping to indexMaping
 	indexMapping.AddDocumentMapping("product", productMapping)
@@ -89,7 +90,7 @@ func createIndex() (bleve.Index, error) {
 		return nil, err
 	}
 
-	p1 := &Product{1, "180 flat", "fotolivro", []string{"best", "new"}}
+	p1 := &Product{1, "180 flat", "fotolivro", []string{"best", "new", "try this"}}
 	p2 := &Product{
 		ID:    2,
 		Name:  "Prime",
