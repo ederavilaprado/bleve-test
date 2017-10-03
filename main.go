@@ -16,7 +16,7 @@ const datastorePath = "example.bleve"
 
 type product struct {
 	ID   int
-	Name string
+	Name string `json:"name"`
 	Type string
 	Tags []string
 }
@@ -34,7 +34,7 @@ func main() {
 	}
 
 	query := bleve.NewMatchQuery("Flats")
-	query.SetField("Name")
+	query.SetField("name")
 
 	search := bleve.NewSearchRequest(query)
 	search.Fields = []string{"Name", "Type", "Tags"}
@@ -66,7 +66,7 @@ func createIndex() (bleve.Index, error) {
 
 	nameFieldMapping := bleve.NewTextFieldMapping()
 	nameFieldMapping.Analyzer = "en"
-	productMapping.AddFieldMappingsAt("Name", nameFieldMapping)
+	productMapping.AddFieldMappingsAt("name", nameFieldMapping)
 
 	// Add product mapping to indexMaping
 	indexMapping.AddDocumentMapping("product", productMapping)
