@@ -15,13 +15,13 @@ const datastorePath = "example.bleve"
 // https://godoc.org/gopkg.in/robfig/cron.v2
 
 type product struct {
-	ID        int
-	Name      string
-	BrandName string
+	ID   int
+	Name string
+	Type string
+	Tags []string
 }
 
 func main() {
-
 	index, err := openIndex()
 	if err != nil {
 		if err == bleve.ErrorIndexPathDoesNotExist {
@@ -33,12 +33,11 @@ func main() {
 		}
 	}
 
-	query := bleve.NewMatchQuery("teste")
+	query := bleve.NewMatchQuery("new")
 	search := bleve.NewSearchRequest(query)
-
-	stylesFacet := bleve.NewFacetRequest("BrandName", 5)
-	search.AddFacet("Brands", stylesFacet)
-	search.Fields = []string{"Name", "BrandName"}
+	search.Fields = []string{"Name", "Type", "Tags"}
+	// Facet
+	search.AddFacet("Types", bleve.NewFacetRequest("Type", 5))
 
 	searchResults, err := index.Search(search)
 	if err != nil {
@@ -58,17 +57,19 @@ func openIndex() (bleve.Index, error) {
 }
 
 func createIndex() (bleve.Index, error) {
-	// index := bleve.NewDocumentMapping()
-	// brandMapping := bleve.NewTextFieldMapping()
-
 	mapping := bleve.NewIndexMapping()
 	index, err := bleve.New(datastorePath, mapping)
 	if err != nil {
 		return nil, err
 	}
-	p1 := &product{1, "eder", "teste"}
-	p2 := &product{2, "maria", "teste dois"}
-	p3 := &product{3, "josé", "teste"}
+	p1 := &product{1, "180 flat", "fotolivro", []string{"best", "new"}}
+	p2 := &product{
+		ID:   2,
+		Name: "Prime",
+		Type: "fotolivro",
+	}
+	p3 := &product{3, "Revista", "fotolivreto", []string{"new"}}
+
 	index.Index(strconv.Itoa(p1.ID), p1)
 	index.Index(strconv.Itoa(p2.ID), p2)
 	index.Index(strconv.Itoa(p3.ID), p3)
