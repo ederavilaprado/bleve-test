@@ -33,9 +33,12 @@ func main() {
 		}
 	}
 
-	query := bleve.NewMatchQuery("new")
+	query := bleve.NewMatchQuery("Flats")
+	query.SetField("Name")
+
 	search := bleve.NewSearchRequest(query)
 	search.Fields = []string{"Name", "Type", "Tags"}
+
 	// Facet
 	search.AddFacet("Types", bleve.NewFacetRequest("Type", 5))
 
@@ -57,11 +60,22 @@ func openIndex() (bleve.Index, error) {
 }
 
 func createIndex() (bleve.Index, error) {
-	mapping := bleve.NewIndexMapping()
-	index, err := bleve.New(datastorePath, mapping)
+	indexMapping := bleve.NewIndexMapping()
+
+	productMapping := bleve.NewDocumentMapping()
+
+	nameFieldMapping := bleve.NewTextFieldMapping()
+	nameFieldMapping.Analyzer = "en"
+	productMapping.AddFieldMappingsAt("Name", nameFieldMapping)
+
+	// Add product mapping to indexMaping
+	indexMapping.AddDocumentMapping("product", productMapping)
+
+	index, err := bleve.New(datastorePath, indexMapping)
 	if err != nil {
 		return nil, err
 	}
+
 	p1 := &product{1, "180 flat", "fotolivro", []string{"best", "new"}}
 	p2 := &product{
 		ID:   2,
