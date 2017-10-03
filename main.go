@@ -7,7 +7,7 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
-	// _ "github.com/blevesearch/bleve/analysis/lang/pt"
+	"github.com/blevesearch/bleve/analysis/lang/pt"
 )
 
 const datastorePath = "example.bleve"
@@ -40,8 +40,8 @@ func main() {
 		}
 	}
 
-	query := bleve.NewMatchQuery("new")
-	query.SetField("Tags")
+	query := bleve.NewMatchQuery("180 flat")
+	// query.SetField("Typex")
 
 	search := bleve.NewSearchRequest(query)
 	search.Fields = []string{"name", "Typex", "Tags"}
@@ -78,9 +78,15 @@ func createIndex() (bleve.Index, error) {
 
 	productMapping := bleve.NewDocumentMapping()
 
+	nameFieldMapping := bleve.NewTextFieldMapping()
+	nameFieldMapping.Analyzer = pt.AnalyzerName
+	productMapping.AddFieldMappingsAt("name", nameFieldMapping)
+
 	tagsFieldMapping := bleve.NewTextFieldMapping()
 	tagsFieldMapping.Analyzer = keyword.Name
 	productMapping.AddFieldMappingsAt("Tags", tagsFieldMapping)
+
+	// pt.AnalyzerName
 
 	// Add product mapping to indexMaping
 	indexMapping.AddDocumentMapping("product", productMapping)
