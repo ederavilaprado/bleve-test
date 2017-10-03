@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/bleve"
+	_ "github.com/blevesearch/bleve/analysis/analyzer/keyword"
+	// _ "github.com/blevesearch/bleve/analysis/lang/pt"
 )
 
 const datastorePath = "example.bleve"
@@ -14,11 +16,16 @@ const datastorePath = "example.bleve"
 // 0,5,10,15,20,25,30,35,40,45,50,55 * * * *
 // https://godoc.org/gopkg.in/robfig/cron.v2
 
-type product struct {
+type Product struct {
 	ID   int
 	Name string `json:"name"`
-	Type string
-	Tags []string
+	// Name string
+	Typex string
+	Tags  []string
+}
+
+func (Product) Type() string {
+	return "product"
 }
 
 func main() {
@@ -33,14 +40,19 @@ func main() {
 		}
 	}
 
-	query := bleve.NewMatchQuery("Flats")
-	query.SetField("name")
+	query := bleve.NewMatchQuery("new")
+	query.SetField("Tags")
 
 	search := bleve.NewSearchRequest(query)
-	search.Fields = []string{"Name", "Type", "Tags"}
+	search.Fields = []string{"name", "Typex", "Tags"}
+
+	// Ambos deram o mesmo resultado
+	// search.Highlight = bleve.NewHighlight()
+	search.Highlight = bleve.NewHighlightWithStyle("html")
 
 	// Facet
-	search.AddFacet("Types", bleve.NewFacetRequest("Type", 5))
+	search.AddFacet("Types", bleve.NewFacetRequest("Typex", 5))
+	search.AddFacet("Name", bleve.NewFacetRequest("name", 5))
 
 	searchResults, err := index.Search(search)
 	if err != nil {
@@ -60,12 +72,13 @@ func openIndex() (bleve.Index, error) {
 }
 
 func createIndex() (bleve.Index, error) {
+
 	indexMapping := bleve.NewIndexMapping()
 
 	productMapping := bleve.NewDocumentMapping()
 
 	nameFieldMapping := bleve.NewTextFieldMapping()
-	nameFieldMapping.Analyzer = "en"
+	nameFieldMapping.Analyzer = "keyword"
 	productMapping.AddFieldMappingsAt("name", nameFieldMapping)
 
 	// Add product mapping to indexMaping
@@ -76,13 +89,13 @@ func createIndex() (bleve.Index, error) {
 		return nil, err
 	}
 
-	p1 := &product{1, "180 flat", "fotolivro", []string{"best", "new"}}
-	p2 := &product{
-		ID:   2,
-		Name: "Prime",
-		Type: "fotolivro",
+	p1 := &Product{1, "180 flat", "fotolivro", []string{"best", "new"}}
+	p2 := &Product{
+		ID:    2,
+		Name:  "Prime",
+		Typex: "fotolivro",
 	}
-	p3 := &product{3, "Revista", "fotolivreto", []string{"new"}}
+	p3 := &Product{3, "Revista", "fotolivreto", []string{"new"}}
 
 	index.Index(strconv.Itoa(p1.ID), p1)
 	index.Index(strconv.Itoa(p2.ID), p2)
